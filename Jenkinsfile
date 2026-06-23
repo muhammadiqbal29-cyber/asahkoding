@@ -178,9 +178,6 @@ pipeline {
         }
         
         stage('Release & Semantic Versioning') {
-            when {
-                branch 'main' // Hanya dijalankan jika berada di branch utama
-            }
             steps {
                 script {
                     echo "Melakukan rilis versi secara otomatis..."
