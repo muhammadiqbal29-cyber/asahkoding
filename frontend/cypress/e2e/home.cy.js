@@ -12,10 +12,8 @@ describe('AsahKoding E2E Tests', () => {
     // 4. Klik tombol jalankan kode
     cy.contains('JALANKAN KODE!').click();
 
-    // 5. Verifikasi bahwa status berubah menjadi loading atau berhasil (karena backend jalan)
-    // Di awal ada kata 'MENUNGGU' atau 'MENJALANKAN...'
-    cy.contains('MENJALANKAN...').should('exist');
-
+    // 5. Kita langsung tunggu hasil akhirnya saja, karena kecepatan eksekusi API di backend
+    // kadang kurang dari 50ms sehingga tulisan 'MENJALANKAN...' lewat terlalu cepat.
     // Karena kode default adalah "Halo Dunia" yang benar, kita tunggu sampai berhasil
     cy.contains('DITERIMA (ACCEPTED)!', { timeout: 15000 }).should('be.visible');
   });
