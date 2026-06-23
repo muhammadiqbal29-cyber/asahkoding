@@ -40,6 +40,7 @@ services:
     volumes:
       # DOOD: Mengizinkan API Backend di dalam kontainer untuk menjalankan Docker Run
       - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/leetcode_executions:/tmp/leetcode_executions
     restart: unless-stopped
 
   frontend:

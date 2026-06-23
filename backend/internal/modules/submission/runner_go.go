@@ -19,8 +19,10 @@ var execCommandContext = exec.CommandContext
 type GoRunner struct{}
 
 func (r *GoRunner) Compile(code string) (string, error) {
-	// 1. Membuat direktori sementara
-	tmpDir, err := os.MkdirTemp("", "leetcode_go_*")
+	// 1. Membuat direktori sementara di path yang disinkronkan dengan host (DOOD)
+	baseDir := "/tmp/leetcode_executions"
+	_ = os.MkdirAll(baseDir, 0750)
+	tmpDir, err := os.MkdirTemp(baseDir, "go_*")
 	if err != nil {
 		return "", fmt.Errorf("Gagal membuat direktori sementara: %v", err)
 	}
@@ -32,14 +34,16 @@ func (r *GoRunner) Compile(code string) (string, error) {
 		return tmpDir, fmt.Errorf("Gagal menulis file kode: %v", err)
 	}
 
-	// === FASE 1: KOMPILASI LOKAL (HOST) ===
-	compileCtx, compileCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// === FASE 1: KOMPILASI DENGAN DOCKER ===
+	compileCtx, compileCancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer compileCancel()
 
-	compileCmd := execCommandContext(compileCtx, "go", "build", "-o", "main_exec", "main.go")
-	compileCmd.Dir = tmpDir
-	// Menyuntikkan CGO_ENABLED=0 agar file biner bisa berjalan di alpine tanpa error library glibc
-	compileCmd.Env = append(os.Environ(), "CGO_ENABLED=0", "GOOS=linux", "GOARCH=amd64")
+	compileCmd := execCommandContext(compileCtx, "docker", "run", "--rm",
+		"-v", fmt.Sprintf("%s:/app", tmpDir),
+		"-w", "/app",
+		"golang:alpine",
+		"sh", "-c", "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main_exec main.go",
+	)
 
 	var compileErrBuf bytes.Buffer
 	compileCmd.Stderr = &compileErrBuf
