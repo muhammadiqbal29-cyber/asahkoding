@@ -15,6 +15,7 @@ import (
 	"github.com/muhammad-iqbal/leetcode-backend/internal/modules/problem"
 	"github.com/muhammad-iqbal/leetcode-backend/internal/modules/submission"
 	"github.com/muhammad-iqbal/leetcode-backend/internal/modules/user"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
@@ -28,7 +29,7 @@ func main() {
 	config.InitMySQL()
 	config.InitRedis()
 
-	// Menjalankan GORM AutoMigrate (Membuat Tabel di MySQL secara otomatis)
+	// Menjalankan Gorm AutoMigrate
 	if config.DB != nil {
 		log.Println("Running Database AutoMigrations...")
 		_ = config.DB.AutoMigrate(
@@ -37,6 +38,31 @@ func main() {
 			&problem.TestCase{},
 			&submission.Submission{},
 		)
+
+		// Otomatis menanam data dummy untuk E2E Testing jika kosong
+		var count int64
+		config.DB.Model(&user.User{}).Count(&count)
+		if count == 0 {
+			log.Println("Seeding test user...")
+			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("rahasia123"), bcrypt.DefaultCost)
+			config.DB.Create(&user.User{
+				Username:     "fauzan",
+				Email:        "fauzan@leetcode.com",
+				PasswordHash: string(hashedPassword),
+				Role:         user.RoleUser,
+			})
+		}
+
+		config.DB.Model(&problem.Problem{}).Count(&count)
+		if count == 0 {
+			log.Println("Seeding test problem...")
+			config.DB.Create(&problem.Problem{
+				ID:          1,
+				Title:       "Penjelajah Kata",
+				Description: "Cetak kata 'Halo Dunia'",
+				Difficulty:  "Mudah",
+			})
+		}
 	}
 
 	// Inisialisasi Chi Router
