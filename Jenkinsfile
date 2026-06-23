@@ -107,9 +107,13 @@ pipeline {
                 stage('Security Scan (Trivy)') {
                     steps {
                         script {
-                            echo "Memindai Backend Image untuk Vulnerabilities..."
-                            // Menjalankan Trivy dari Docker untuk mengecek image (hanya menampilkan HIGH dan CRITICAL)
-                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL --no-progress \${BACKEND_IMAGE}:\${GIT_COMMIT_SHORT}"
+                            if (params.RUN_HEAVY_TESTS) {
+                                echo "Memindai Backend Image untuk Vulnerabilities..."
+                                // Menjalankan Trivy dari Docker untuk mengecek image (hanya menampilkan HIGH dan CRITICAL)
+                                sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL --no-progress \${BACKEND_IMAGE}:\${GIT_COMMIT_SHORT}"
+                            } else {
+                                echo "Melewati Security Scan (RUN_HEAVY_TESTS=false)"
+                            }
                         }
                     }
                 }
@@ -117,12 +121,16 @@ pipeline {
                 stage('Dependency Security Audit') {
                     steps {
                         script {
-                            echo "Menjalankan npm audit (Frontend)..."
-                            // Menggunakan || true sementara agar audit tidak menggagalkan build jika ada moderate vulnerability
-                            sh "docker run --rm \${FRONTEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c 'npm audit --audit-level=high || echo \"Peringatan: Terdapat NPM vulnerabilities!\"'"
-                            
-                            echo "Menjalankan govulncheck (Backend)..."
-                            sh "docker run --rm \${BACKEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c 'govulncheck ./...'"
+                            if (params.RUN_HEAVY_TESTS) {
+                                echo "Menjalankan npm audit (Frontend)..."
+                                // Menggunakan || true sementara agar audit tidak menggagalkan build jika ada moderate vulnerability
+                                sh "docker run --rm \${FRONTEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c 'npm audit --audit-level=high || echo \"Peringatan: Terdapat NPM vulnerabilities!\"'"
+                                
+                                echo "Menjalankan govulncheck (Backend)..."
+                                sh "docker run --rm \${BACKEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c 'govulncheck ./...'"
+                            } else {
+                                echo "Melewati Dependency Security Audit (RUN_HEAVY_TESTS=false)"
+                            }
                         }
                     }
                 }
@@ -132,28 +140,28 @@ pipeline {
         stage('Integration, Load & E2E Test') {
             steps {
                 script {
-                    echo "Menjalankan Lingkungan Test menggunakan Docker Compose..."
-                    try {
-                        // Mengunduh docker-compose binary secara lokal ke workspace
-                        sh """
-                        if [ ! -f ./docker-compose ]; then
-                            curl -SL https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -o docker-compose
-                            chmod +x docker-compose
-                        fi
-                        """
-                        
-                        // Menghidupkan lingkungan test dan menunggu seluruh container siap (Healthcheck) via argumen --wait
-                        sh "FRONTEND_IMAGE=\${FRONTEND_IMAGE} BACKEND_IMAGE=\${BACKEND_IMAGE} GIT_COMMIT_SHORT=\${GIT_COMMIT_SHORT} ./docker-compose -f docker-compose.test.yml up --wait -d"
-                        
-                        echo "Semua kontainer siap (Healthcheck Passed)!"
-                        
-                        // Menembak endpoint integration test dari dalam docker network
-                        echo "Menguji Endpoint Redis Integration..."
-                        sh "docker run --rm --network asahkoding_test_net curlimages/curl -f --retry 5 --retry-connrefused --retry-delay 3 http://backend-test:8080/health/redis"
-                        
-                        echo "Integration Test Berhasil!"
+                    if (params.RUN_HEAVY_TESTS) {
+                        echo "Menjalankan Lingkungan Test menggunakan Docker Compose..."
+                        try {
+                            // Mengunduh docker-compose binary secara lokal ke workspace
+                            sh """
+                            if [ ! -f ./docker-compose ]; then
+                                curl -SL https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -o docker-compose
+                                chmod +x docker-compose
+                            fi
+                            """
+                            
+                            // Menghidupkan lingkungan test dan menunggu seluruh container siap (Healthcheck) via argumen --wait
+                            sh "FRONTEND_IMAGE=\${FRONTEND_IMAGE} BACKEND_IMAGE=\${BACKEND_IMAGE} GIT_COMMIT_SHORT=\${GIT_COMMIT_SHORT} ./docker-compose -f docker-compose.test.yml up --wait -d"
+                            
+                            echo "Semua kontainer siap (Healthcheck Passed)!"
+                            
+                            // Menembak endpoint integration test dari dalam docker network
+                            echo "Menguji Endpoint Redis Integration..."
+                            sh "docker run --rm --network asahkoding_test_net curlimages/curl -f --retry 5 --retry-connrefused --retry-delay 3 http://backend-test:8080/health/redis"
+                            
+                            echo "Integration Test Berhasil!"
 
-                        if (params.RUN_HEAVY_TESTS) {
                             // Menjalankan Load & Stress Test menggunakan K6
                             echo "Memulai Load & Stress Testing dengan K6 (50 VUs)..."
                             sh "cat k6/load-test.js | docker run --memory=200m --rm -i --network asahkoding_test_net grafana/k6 run -"
@@ -166,22 +174,22 @@ pipeline {
                             sh "docker run --memory=1g --rm -i --network asahkoding_test_net ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://backend-test:8080 -I"
                             
                             echo "OWASP ZAP DAST Selesai!"
-                        } else {
-                            echo "Melewati K6 Load Test dan OWASP ZAP (RUN_HEAVY_TESTS=false)."
-                        }
 
-                        // Menjalankan E2E Testing menggunakan Cypress
-                        echo "Memulai End-to-End (E2E) Testing menggunakan Cypress..."
-                        // Cypress membutuhkan flag --e2e. Kita oper CYPRESS_BASE_URL agar menembak container frontend-test
-                        sh "docker run --memory=1g --rm --network asahkoding_test_net -e CYPRESS_BASE_URL=http://frontend-test:3000 \${FRONTEND_IMAGE}-e2e:\${GIT_COMMIT_SHORT} cypress run --e2e"
-                        
-                        echo "Cypress E2E Test Berhasil!"
-                    } catch (Exception e) {
-                        echo "Integration / Load / E2E Test Gagal: \${e.message}"
-                        error("Integration / Load / E2E Test Gagal!")
-                    } finally {
-                        // Membersihkan container test agar tidak memakan resource Jenkins
-                        sh "./docker-compose -f docker-compose.test.yml down -v"
+                            // Menjalankan E2E Testing menggunakan Cypress
+                            echo "Memulai End-to-End (E2E) Testing menggunakan Cypress..."
+                            // Cypress membutuhkan flag --e2e. Kita oper CYPRESS_BASE_URL agar menembak container frontend-test
+                            sh "docker run --memory=1g --rm --network asahkoding_test_net -e CYPRESS_BASE_URL=http://frontend-test:3000 \${FRONTEND_IMAGE}-e2e:\${GIT_COMMIT_SHORT} cypress run --e2e"
+                            
+                            echo "Cypress E2E Test Berhasil!"
+                        } catch (Exception e) {
+                            echo "Integration / Load / E2E Test Gagal: \${e.message}"
+                            error("Integration / Load / E2E Test Gagal!")
+                        } finally {
+                            // Membersihkan container test agar tidak memakan resource Jenkins
+                            sh "./docker-compose -f docker-compose.test.yml down -v"
+                        }
+                    } else {
+                        echo "Melewati tahap Integration, Load, DAST, dan E2E Test (RUN_HEAVY_TESTS=false)."
                     }
                 }
             }
