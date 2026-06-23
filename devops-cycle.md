@@ -65,14 +65,14 @@
  * [x] Menyusun *container image* menggunakan Docker
    * [x] Menjalankan perintah `docker build` lewat Jenkins
    * [x] **[NEW]** Memanfaatkan *Docker Cache Layer* untuk mempercepat proses *build* di pipeline
- * [ ] Melakukan kompilasi dan pembungkusan kode menjadi *Artifact*
-   * [ ] Memastikan tidak ada *error* sintaksis saat proses *build* berjalan
-   * [ ] **[SECURITY]** Melakukan *Container Security Scanning* (menggunakan Trivy/Clair) pada Docker Image yang baru dibuat untuk mendeteksi *vulnerability* level OS sebelum di-*deploy*.
+ * [x] Melakukan kompilasi dan pembungkusan kode menjadi *Artifact*
+   * [x] Memastikan tidak ada *error* sintaksis saat proses *build* berjalan
+   * [x] **[SECURITY]** Melakukan *Container Security Scanning* (menggunakan Trivy/Clair) pada Docker Image yang baru dibuat untuk mendeteksi *vulnerability* level OS sebelum di-*deploy*.
 
 **4. Test (Pengujian)**
- * [ ] Eksekusi *Unit Test* secara otomatis via pipeline Jenkins
-   * [ ] Jika ada 1 saja *test* yang gagal (*fail*), Jenkins harus otomatis menghentikan proses (*abort pipeline*)
-   * [ ] **[NEW]** Memeriksa *Code Coverage Threshold* (Gagal jika cakupan tes di bawah target, misal wajib 80%)
+ * [x] Eksekusi *Unit Test* secara otomatis via pipeline Jenkins
+   * [x] Jika ada 1 saja *test* yang gagal (*fail*), Jenkins harus otomatis menghentikan proses (*abort pipeline*)
+   * [x] **[NEW]** Memeriksa *Code Coverage Threshold* (Gagal jika cakupan tes di bawah target, misal wajib 80%)
  * [ ] Menjalankan pengujian integrasi (*Integration Test*)
    * [ ] Menguji apakah kontainer aplikasi Node.js benar-benar bisa membaca dan menulis data ke kontainer Redis *test*
  * [ ] **[NEW] Pengujian Lanjutan (Advanced Testing)**

@@ -47,11 +47,49 @@ pipeline {
                             .
                         """
                     }
+                    // --- Build Backend Builder Image (untuk Unit Test) ---
+                    dir('backend') {
+                        echo "Building Backend Builder Image for Unit Tests..."
+                        sh """
+                        docker build \\
+                            --target builder \\
+                            -t \${BACKEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} \\
+                            .
+                        """
+                    }
                 }
             }
         }
         
-        // Catatan: Tahapan selanjutnya (Test, Push ke Registry, Deploy) 
+        stage('Unit Test & Coverage') {
+            steps {
+                script {
+                    echo "Menjalankan Golang Unit Test & Coverage..."
+                    // Menjalankan testing dari dalam image builder yang memiliki source code & tools Golang
+                    sh """
+                        docker run --rm \${BACKEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c '
+                            go test ./... -coverprofile=coverage.out
+                            COVERAGE=\$(go tool cover -func=coverage.out | grep total | awk "{print \\\$3}" | tr -d "%")
+                            echo "Current Coverage: \${COVERAGE}%"
+                            awk -v cov="\$COVERAGE" "BEGIN { if (cov < 20.0) { exit 1 } }" || { echo "Coverage is below 20%! Failing build."; exit 1; }
+                            echo "Coverage OK."
+                        '
+                    """
+                }
+            }
+        }
+        
+        stage('Security Scan (Trivy)') {
+            steps {
+                script {
+                    echo "Memindai Backend Image untuk Vulnerabilities..."
+                    // Menjalankan Trivy dari Docker untuk mengecek image (hanya menampilkan HIGH dan CRITICAL)
+                    sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL --no-progress \${BACKEND_IMAGE}:\${GIT_COMMIT_SHORT}"
+                }
+            }
+        }
+        
+        // Catatan: Tahapan selanjutnya (Push ke Registry, Deploy) 
         // akan disesuaikan saat Anda melanjutkan checklist berikutnya.
     }
     

@@ -22,7 +22,7 @@ backend/leetcode-backend
 *.dylib
 *.test
 *.out
-*_test.go
+*.out
 
 # OS generated files
 .DS_Store
