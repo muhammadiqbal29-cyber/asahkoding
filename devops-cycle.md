@@ -76,11 +76,11 @@
  * [x] Menjalankan pengujian integrasi (*Integration Test*)
    * [x] Menguji apakah kontainer aplikasi Node.js/Golang benar-benar bisa membaca dan menulis data ke kontainer Redis *test*
  * [x] **[NEW] Pengujian Lanjutan (Advanced Testing)**
-   * [x] Menjalankan *Load / Stress Testing* (K6 / JMeter) untuk menguji ketahanan aplikasi saat beban tinggi
+   * [x] ~~Menjalankan *Load / Stress Testing* (K6 / JMeter) untuk menguji ketahanan aplikasi saat beban tinggi~~ *(Dipindah ke Nightly Pipeline / Parameter Khusus)*
    * [x] Menjalankan *End-to-End (E2E) Testing* secara otomatis pada antarmuka pengguna / alur sistem utuh
  * [x] Pemindaian keamanan kode dan kualitas kode (*Security & Code Scanning*)
    * [x] Memeriksa apakah ada pustaka *dependencies* yang memiliki celah keamanan (*vulnerability*) lewat `npm audit` / `govulncheck` atau integrasi SonarQube.
-   * [x] **[SECURITY]** Menjalankan pengujian DAST (*Dynamic Application Security Testing*) menggunakan OWASP ZAP untuk mensimulasikan serangan *hacker* (XSS, CSRF, Brute Force) ke API yang sedang menyala.
+   * [x] **[SECURITY]** ~~Menjalankan pengujian DAST (*Dynamic Application Security Testing*) menggunakan OWASP ZAP untuk mensimulasikan serangan *hacker* (XSS, CSRF, Brute Force) ke API yang sedang menyala.~~ *(Dipindah ke Nightly Pipeline / Parameter Khusus)*
 
 **5. Release (Rilis)**
  * [x] Pemberian versi pada Docker Image (*Image Tagging*)
@@ -99,21 +99,21 @@
    * [ ] Memilih Strategi *Zero-Downtime Deployment* (*Blue-Green Deployment*, *Rolling Updates*, atau *Canary Release*)
  * [ ] **[SECURITY] Infrastruktur Keamanan Jaringan & Rahasia**
    * [ ] Memasang WAF (*Web Application Firewall*) & *Rate Limiting* (contoh: Cloudflare/NGINX) untuk menangkis serangan DDoS dan *Brute Force* API *Login*.
-   * [ ] Menggunakan *Secrets Management* (seperti HashiCorp Vault) untuk menyimpan *password* MySQL/Redis di produksi, **bukan** menggunakan file `.env` biasa.
+   * [ ] ~~Menggunakan *Secrets Management* (seperti HashiCorp Vault) untuk menyimpan *password* MySQL/Redis di produksi, **bukan** menggunakan file `.env` biasa.~~ *(Berlebihan, cukup gunakan Jenkins Credentials yang disuntikkan ke `.env`)*
  * [ ] Otomatisasi penyebaran (*Deployment*) menggunakan pipeline CD (Jenkins)
    * [ ] Mengamankan kunci SSH server produksi di dalam kredensial rahasia Jenkins (*Jenkins Credentials Store*)
  * [ ] Menyebarkan dan mengonfigurasi server/container Redis di lingkungan produksi
    * [ ] **Wajib:** Mengaktifkan password pada Redis produksi (jangan biarkan *default* tanpa *password*)
    * [ ] Membatasi *port* Redis (6379) agar hanya bisa diakses oleh internal container aplikasi Node.js, tidak terbuka untuk publik luar
- * [ ] Menjalankan container Docker berisi aplikasi Node.js di server produksi
+ * [ ] Menjalankan container Docker berisi aplikasi di server produksi
    * [ ] Mengonfigurasi parameter *restart policy* di Docker (misal: `--restart unless-stopped`)
- * [ ] Memastikan perintah utama di dalam container dijalankan oleh PM2 (`pm2-runtime`)
+ * [ ] ~~Memastikan perintah utama di dalam container dijalankan oleh PM2 (`pm2-runtime`)~~ *(Hanya untuk Next.js, Golang berjalan natif)*
 
 **7. Operate (Pengoperasian)**
  * [ ] Mengelola jalannya kontainerisasi aplikasi dan database via Docker
    * [ ] Mengatur alokasi batas maksimum RAM dan CPU untuk masing-masing container agar tidak saling berebut *resource* server
- * [ ] Membiarkan PM2 menjaga proses Node.js tetap hidup
-   * [ ] Memastikan PM2 berjalan dalam *Cluster Mode* jika server memiliki CPU lebih dari 1 *core*
+ * [ ] Membiarkan PM2 menjaga proses aplikasi Frontend (Next.js) tetap hidup
+   * [ ] ~~Memastikan PM2 berjalan dalam *Cluster Mode* jika server memiliki CPU lebih dari 1 *core*~~ *(Tidak perlu untuk Golang)*
  * [ ] Optimasi performa memori, replikasi, dan *cluster* Redis
    * [ ] Mengatur kebijakan *eviction* Redis (misal: `volatile-lru`) agar memori Redis tidak penuh dan menyebabkan server hang
  * [ ] **[NEW] Backup & Ketahanan Data**
@@ -131,7 +131,7 @@
  * [ ] Memantau performa serta log kegagalan pada pipeline otomatis Jenkins
  * [ ] **[NEW] Metrik & Observabilitas Lanjutan**
    * [ ] Menerapkan *Application Performance Monitoring* (APM) dengan Dasbor (Prometheus & Grafana, New Relic, atau Datadog)
-   * [ ] Memasang *Distributed Tracing* (seperti Jaeger/Zipkin) untuk melacak *bottleneck* performa di tiap layanan
+   * [ ] ~~Memasang *Distributed Tracing* (seperti Jaeger/Zipkin) untuk melacak *bottleneck* performa di tiap layanan~~ *(Overkill untuk monolit)*
    * [ ] Mengaktifkan *Uptime Monitoring* dari pihak eksternal (misal: UptimeRobot) untuk memverifikasi aplikasi online dari internet
 
 ---
@@ -140,3 +140,4 @@
 - **Parallel Execution**: Pipeline dirancang dengan eksekusi multi-cabang serentak (Trivy, Unit Test, Audit) untuk menghindari *bottleneck* antrean *deployment*.
 - **Immutable Builder Image**: Perangkat (*tools*) seperti `govulncheck` telah ditanam permanen ke dalam *base image* (Dockerfile builder stage) untuk menjamin stabilitas saat server pihak ketiga mengalami gangguan (*down*).
 - **Dynamic Service Readiness**: Seluruh layanan divalidasi kesiapannya menggunakan Docker Healthcheck dengan _trigger_ `--wait`, menghapus *anti-pattern* `sleep` statis demi waktu eksekusi seefisien mungkin.
+- **Pipeline Tiering / Pragmatic CI**: Pengujian berat berbasis metrik seperti K6 Load Test dan ZAP DAST dikeluarkan dari alur *commit* harian (tersedia via parameter khusus) agar CI/CD berjalan dalam hitungan menit tanpa membuat memori sistem macet.

@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    parameters {
+        booleanParam(name: 'RUN_HEAVY_TESTS', defaultValue: false, description: 'Jalankan Load Test (K6) dan Pen-Test (ZAP) (Hanya direkomendasikan untuk rilis/nightly)')
+    }
+
     environment {
         // Variabel untuk Docker Hub / Registry Anda
         DOCKER_REGISTRY = 'iqbalmahad'
@@ -149,18 +153,22 @@ pipeline {
                         
                         echo "Integration Test Berhasil!"
 
-                        // Menjalankan Load & Stress Test menggunakan K6
-                        echo "Memulai Load & Stress Testing dengan K6 (50 VUs)..."
-                        sh "cat k6/load-test.js | docker run --memory=200m --rm -i --network asahkoding_test_net grafana/k6 run -"
-                        
-                        echo "Load & Stress Test Berhasil!"
-                        
-                        // Menjalankan DAST (Dynamic Application Security Testing) menggunakan OWASP ZAP
-                        echo "Memulai OWASP ZAP Baseline Scan (DAST)..."
-                        // Gunakan opsi -I agar ZAP mengembalikan exit 0 meskipun menemukan warning
-                        sh "docker run --memory=1g --rm -i --network asahkoding_test_net ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://backend-test:8080 -I"
-                        
-                        echo "OWASP ZAP DAST Selesai!"
+                        if (params.RUN_HEAVY_TESTS) {
+                            // Menjalankan Load & Stress Test menggunakan K6
+                            echo "Memulai Load & Stress Testing dengan K6 (50 VUs)..."
+                            sh "cat k6/load-test.js | docker run --memory=200m --rm -i --network asahkoding_test_net grafana/k6 run -"
+                            
+                            echo "Load & Stress Test Berhasil!"
+                            
+                            // Menjalankan DAST (Dynamic Application Security Testing) menggunakan OWASP ZAP
+                            echo "Memulai OWASP ZAP Baseline Scan (DAST)..."
+                            // Gunakan opsi -I agar ZAP mengembalikan exit 0 meskipun menemukan warning
+                            sh "docker run --memory=1g --rm -i --network asahkoding_test_net ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://backend-test:8080 -I"
+                            
+                            echo "OWASP ZAP DAST Selesai!"
+                        } else {
+                            echo "Melewati K6 Load Test dan OWASP ZAP (RUN_HEAVY_TESTS=false)."
+                        }
 
                         // Menjalankan E2E Testing menggunakan Cypress
                         echo "Memulai End-to-End (E2E) Testing menggunakan Cypress..."
