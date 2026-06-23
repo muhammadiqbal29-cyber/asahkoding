@@ -67,7 +67,7 @@ pipeline {
                     echo "Menjalankan Golang Unit Test & Coverage..."
                     // Menjalankan testing dari dalam image builder yang memiliki source code & tools Golang
                     sh """
-                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \${BACKEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c '
+                        docker run --rm \${BACKEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c '
                             go test ./... -coverprofile=coverage.out
                             COVERAGE=\$(go tool cover -func=coverage.out | grep total | awk "{print \\\$3}" | tr -d "%")
                             echo "Current Coverage: \${COVERAGE}%"

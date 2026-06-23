@@ -12,6 +12,10 @@ import (
 	"time"
 )
 
+// execCommandContext di-assign ke exec.CommandContext secara default,
+// tapi bisa ditimpa (mocked) saat proses unit test.
+var execCommandContext = exec.CommandContext
+
 type GoRunner struct{}
 
 func (r *GoRunner) Compile(code string) (string, error) {
@@ -32,7 +36,7 @@ func (r *GoRunner) Compile(code string) (string, error) {
 	compileCtx, compileCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer compileCancel()
 
-	compileCmd := exec.CommandContext(compileCtx, "go", "build", "-o", "main_exec", "main.go")
+	compileCmd := execCommandContext(compileCtx, "go", "build", "-o", "main_exec", "main.go")
 	compileCmd.Dir = tmpDir
 	// Menyuntikkan CGO_ENABLED=0 agar file biner bisa berjalan di alpine tanpa error library glibc
 	compileCmd.Env = append(os.Environ(), "CGO_ENABLED=0", "GOOS=linux", "GOARCH=amd64")
@@ -66,7 +70,7 @@ func (r *GoRunner) RunTestCase(compileDir string, input string, timeLimitMs int)
 	// Mengeksekusi file biner di dalam container alpine super ringan
 	// Menggunakan flag -i (interactive) agar container bisa menerima input dari Stdin
 	/* #nosec G204 -- compileDir is safely generated via filepath.Join(os.TempDir(), ...) */
-	runCmd := exec.CommandContext(execCtx, "docker", "run", "-i", "--rm",
+	runCmd := execCommandContext(execCtx, "docker", "run", "-i", "--rm",
 		"--network", "none",
 		"--memory", "128m",
 		"--cpus", "1.0",
