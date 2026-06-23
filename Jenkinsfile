@@ -92,10 +92,18 @@ pipeline {
         stage('Integration Test') {
             steps {
                 script {
-                    echo "Menjalankan Integration Test menggunakan Docker Compose..."
+                    echo "Menjalankan Integration Test menggunakan Docker Compose via Docker..."
                     try {
                         // Menghidupkan lingkungan test (MySQL, Redis, Backend)
-                        sh "docker compose -f docker-compose.test.yml up -d"
+                        sh """
+                        docker run --rm \\
+                            -v /var/run/docker.sock:/var/run/docker.sock \\
+                            -v "\$PWD:\$PWD" \\
+                            -w "\$PWD" \\
+                            -e BACKEND_IMAGE=\${BACKEND_IMAGE} \\
+                            -e GIT_COMMIT_SHORT=\${GIT_COMMIT_SHORT} \\
+                            docker/compose:1.29.2 -f docker-compose.test.yml up -d
+                        """
                         
                         // Menunggu container database siap (Healthcheck)
                         echo "Menunggu database siap..."
@@ -103,7 +111,7 @@ pipeline {
                         
                         // Menembak endpoint integration test
                         echo "Menguji Endpoint Redis Integration..."
-                        sh "curl -f --retry 5 --retry-connrefused --retry-delay 3 http://localhost:8081/health/redis"
+                        sh "curl -f --retry 5 --retry-connrefused --retry-delay 3 http://localhost:8082/health/redis"
                         
                         echo "Integration Test Berhasil!"
                     } catch (Exception e) {
@@ -111,7 +119,13 @@ pipeline {
                         error("Integration Test Gagal!")
                     } finally {
                         // Membersihkan container test agar tidak memakan resource Jenkins
-                        sh "docker compose -f docker-compose.test.yml down -v"
+                        sh """
+                        docker run --rm \\
+                            -v /var/run/docker.sock:/var/run/docker.sock \\
+                            -v "\$PWD:\$PWD" \\
+                            -w "\$PWD" \\
+                            docker/compose:1.29.2 -f docker-compose.test.yml down -v
+                        """
                     }
                 }
             }

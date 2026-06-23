@@ -32,7 +32,7 @@ services:
       - REDIS_URL=redis://redis-test:6379/0
       - JWT_SECRET=testsecret
     ports:
-      - "8081:8080"
+      - "8082:8080"
     depends_on:
       mysql-test:
         condition: service_healthy
