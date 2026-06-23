@@ -6,8 +6,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: leetcode_test
-    ports:
-      - "3307:3306"
+    expose:
+      - "3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
@@ -16,8 +16,8 @@ services:
 
   redis-test:
     image: redis:alpine
-    ports:
-      - "6380:6379"
+    expose:
+      - "6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -31,10 +31,16 @@ services:
       - MYSQL_URL=root:root@tcp(mysql-test:3306)/leetcode_test?charset=utf8mb4&parseTime=True&loc=Local
       - REDIS_URL=redis://redis-test:6379/0
       - JWT_SECRET=testsecret
-    ports:
-      - "8082:8080"
+    expose:
+      - "8080"
     depends_on:
       mysql-test:
         condition: service_healthy
       redis-test:
         condition: service_healthy
+    networks:
+      - default
+
+networks:
+  default:
+    name: asahkoding_test_net

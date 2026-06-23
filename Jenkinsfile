@@ -109,9 +109,9 @@ pipeline {
                         echo "Menunggu database siap..."
                         sleep 15
                         
-                        // Menembak endpoint integration test
+                        // Menembak endpoint integration test dari dalam docker network
                         echo "Menguji Endpoint Redis Integration..."
-                        sh "curl -f --retry 5 --retry-connrefused --retry-delay 3 http://localhost:8082/health/redis"
+                        sh "docker run --rm --network asahkoding_test_net curlimages/curl -f --retry 5 --retry-connrefused --retry-delay 3 http://backend-test:8080/health/redis"
                         
                         echo "Integration Test Berhasil!"
                     } catch (Exception e) {
