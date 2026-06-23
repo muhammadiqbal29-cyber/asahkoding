@@ -134,12 +134,12 @@ export default function Home() {
              </div>
 
              <div className="flex justify-end mt-4">
-               <button 
-                 className="btn-bouncy btn-secondary px-8 py-4 text-lg" 
+               <button
+                 className={`btn-bouncy px-8 py-4 text-lg ${!token ? 'bg-gray-400 cursor-not-allowed' : 'btn-secondary'}`}
                  onClick={handleRunCode}
-                 disabled={isSubmitting}
+                 disabled={isSubmitting || !token}
                >
-                 {isSubmitting ? 'MENJALANKAN...' : '🚀 JALANKAN KODE!'}
+                 {isSubmitting ? 'MENJALANKAN...' : (!token ? 'MENYIAPKAN...' : '🚀 JALANKAN KODE!')}
                </button>
              </div>
           </div>
