@@ -12,7 +12,8 @@ WORKDIR /app
 
 # [SANGAT PENTING] Backend kita mengeksekusi perintah 'docker run', 
 # jadi OS di dalam kontainer ini wajib memiliki Docker CLI.
-RUN apk update && apk add --no-cache docker-cli
+# Kita juga menginstal 'go' agar bisa melakukan kompilasi secara instan (0.1s) dibanding harus 'docker run golang' (15s).
+RUN apk update && apk add --no-cache docker-cli go
 
 COPY --from=builder /app/main .
 

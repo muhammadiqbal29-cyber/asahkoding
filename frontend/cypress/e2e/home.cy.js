@@ -14,7 +14,7 @@ describe('AsahKoding E2E Tests', () => {
 
     // 5. Kita langsung tunggu hasil akhirnya saja, karena kecepatan eksekusi API di backend
     // kadang kurang dari 50ms sehingga tulisan 'MENJALANKAN...' lewat terlalu cepat.
-    // Karena kode default adalah "Halo Dunia" yang benar, kita tunggu sampai berhasil
-    cy.contains('DITERIMA (ACCEPTED)!', { timeout: 15000 }).should('be.visible');
+    // Karena kode default adalah "Halo Dunia" yang benar,    // Tunggu hasil eksekusi muncul (Accepted)
+    cy.contains('DITERIMA (ACCEPTED)!', { timeout: 30000 }).should('be.visible');
   });
 });

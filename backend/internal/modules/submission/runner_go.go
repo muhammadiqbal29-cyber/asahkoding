@@ -34,16 +34,14 @@ func (r *GoRunner) Compile(code string) (string, error) {
 		return tmpDir, fmt.Errorf("Gagal menulis file kode: %v", err)
 	}
 
-	// === FASE 1: KOMPILASI DENGAN DOCKER ===
-	compileCtx, compileCancel := context.WithTimeout(context.Background(), 15*time.Second)
+	// === FASE 1: KOMPILASI LOKAL INSTAN (HOST CONTAINER) ===
+	// Karena kita sudah menginstall 'go' di Dockerfile backend, ini akan instan!
+	compileCtx, compileCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer compileCancel()
 
-	compileCmd := execCommandContext(compileCtx, "docker", "run", "--rm",
-		"-v", fmt.Sprintf("%s:/app", tmpDir),
-		"-w", "/app",
-		"golang:alpine",
-		"sh", "-c", "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main_exec main.go",
-	)
+	compileCmd := execCommandContext(compileCtx, "go", "build", "-o", "main_exec", "main.go")
+	compileCmd.Dir = tmpDir
+	compileCmd.Env = append(os.Environ(), "CGO_ENABLED=0", "GOOS=linux", "GOARCH=amd64")
 
 	var compileErrBuf bytes.Buffer
 	compileCmd.Stderr = &compileErrBuf
