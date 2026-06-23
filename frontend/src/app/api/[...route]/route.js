@@ -16,6 +16,10 @@ async function handleProxy(request, { params }) {
       },
     };
 
+    if (request.headers.has('authorization')) {
+      fetchOptions.headers['Authorization'] = request.headers.get('authorization');
+    }
+
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       fetchOptions.body = await request.text();
     }
