@@ -177,8 +177,58 @@ pipeline {
             }
         }
         
-        // Catatan: Tahapan selanjutnya (Push ke Registry, Deploy) 
-        // akan disesuaikan saat Anda melanjutkan checklist berikutnya.
+        stage('Release & Semantic Versioning') {
+            when {
+                branch 'main' // Hanya dijalankan jika berada di branch utama
+            }
+            steps {
+                script {
+                    echo "Melakukan rilis versi secara otomatis..."
+                    
+                    // 1. Konfigurasi Identitas Git untuk komit otomatis
+                    sh "git config user.name 'Jenkins CI'"
+                    sh "git config user.email 'jenkins@asahkoding.internal'"
+
+                    // 2. Instal pustaka semantic versioning
+                    sh "npm install"
+
+                    // 3. Eksekusi Semantic Versioning (Bumping versi, buat CHANGELOG, buat Tag Git)
+                    sh "npm run release"
+
+                    // Baca versi yang baru terbentuk
+                    NEW_VERSION = sh(returnStdout: true, script: "node -p \"require('./package.json').version\"").trim()
+                    echo "Versi Baru yang Dirilis: v\${NEW_VERSION}"
+
+                    // 4. Otentikasi dan push kembali Changelog dan Tag ke GitHub
+                    withCredentials([usernamePassword(credentialsId: 'github-cred', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
+                        // Atur URL remote untuk menggunakan Token Personal Access
+                        sh "git remote set-url origin https://\${GIT_USER}:\${GIT_TOKEN}@github.com/muhammadiqbal29-cyber/asahkoding.git"
+                        // Push ke branch main berikut dengan tag-tag nya
+                        sh "git push --follow-tags origin main"
+                    }
+
+                    // 5. Memberi tag versi baru pada Docker Image
+                    echo "Memberi tag pada Docker Image menjadi v\${NEW_VERSION}..."
+                    sh "docker tag \${BACKEND_IMAGE}:\${GIT_COMMIT_SHORT} \${BACKEND_IMAGE}:v\${NEW_VERSION}"
+                    sh "docker tag \${FRONTEND_IMAGE}:\${GIT_COMMIT_SHORT} \${FRONTEND_IMAGE}:v\${NEW_VERSION}"
+
+                    // 6. Push Image ke Docker Hub menggunakan Credentials Docker
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        echo "Autentikasi ke Docker Hub..."
+                        sh "echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin"
+                        
+                        echo "Mengunggah Docker Image ke Docker Hub..."
+                        sh "docker push \${BACKEND_IMAGE}:v\${NEW_VERSION}"
+                        sh "docker push \${FRONTEND_IMAGE}:v\${NEW_VERSION}"
+                        
+                        // Menghapus kredensial sesi lokal setelah selesai
+                        sh "docker logout"
+                    }
+                    
+                    echo "🎉 RILIS BERHASIL! Versi v\${NEW_VERSION} sudah live di Github dan Docker Hub."
+                }
+            }
+        }
     }
     
     post {

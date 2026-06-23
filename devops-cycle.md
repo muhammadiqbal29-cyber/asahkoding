@@ -83,14 +83,14 @@
    * [x] **[SECURITY]** Menjalankan pengujian DAST (*Dynamic Application Security Testing*) menggunakan OWASP ZAP untuk mensimulasikan serangan *hacker* (XSS, CSRF, Brute Force) ke API yang sedang menyala.
 
 **5. Release (Rilis)**
- * [ ] Pemberian versi pada Docker Image (*Image Tagging*)
-   * [ ] Melarang penggunaan tag `latest` di produksi. Harus menggunakan versi spesifik (misal: `:1.0.0` atau menggunakan *hash commit* Git)
-   * [ ] **[NEW]** Menerapkan *Semantic Versioning* (SemVer) untuk standarisasi penomoran rilis (v1.0.0 ke v1.0.1, dst)
- * [ ] Mengunggah Docker Image aplikasi ke Docker Registry/Hub
-   * [ ] Memastikan jalur pengunggahan (*push*) menggunakan koneksi yang aman/terenkripsi
- * [ ] **[NEW] Dokumentasi Rilis**
-   * [ ] Menghasilkan *Automated Changelog* / *Release Notes* secara otomatis dari riwayat pesan *commit*
- * [ ] Menentukan rilis versi aplikasi yang stabil
+ * [x] Pemberian versi pada Docker Image (*Image Tagging*)
+   * [x] Melarang penggunaan tag `latest` di produksi. Harus menggunakan versi spesifik (misal: `:1.0.0` atau menggunakan *hash commit* Git)
+   * [x] **[NEW]** Menerapkan *Semantic Versioning* (SemVer) untuk standarisasi penomoran rilis (v1.0.0 ke v1.0.1, dst)
+ * [x] Mengunggah Docker Image aplikasi ke Docker Registry/Hub
+   * [x] Memastikan jalur pengunggahan (*push*) menggunakan koneksi yang aman/terenkripsi
+ * [x] **[NEW] Dokumentasi Rilis**
+   * [x] Menghasilkan *Automated Changelog* / *Release Notes* secara otomatis dari riwayat pesan *commit*
+ * [x] Menentukan rilis versi aplikasi yang stabil
 
 **6. Deploy (Penerapan)**
  * [ ] **[NEW] Infrastruktur Otomatis & Strategi Rilis**
