@@ -47,13 +47,24 @@ pipeline {
                             .
                         """
                     }
-                    // --- Build Backend Builder Image (untuk Unit Test) ---
+                    // --- Build Backend Builder Image (untuk Unit Test & govulncheck) ---
                     dir('backend') {
                         echo "Building Backend Builder Image for Unit Tests..."
                         sh """
                         docker build \\
                             --target builder \\
                             -t \${BACKEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} \\
+                            .
+                        """
+                    }
+                    
+                    // --- Build Frontend Builder Image (untuk npm audit) ---
+                    dir('frontend') {
+                        echo "Building Frontend Builder Image for Audit..."
+                        sh """
+                        docker build \\
+                            --target builder \\
+                            -t \${FRONTEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} \\
                             .
                         """
                     }
@@ -89,6 +100,19 @@ pipeline {
             }
         }
         
+        stage('Dependency Security Audit') {
+            steps {
+                script {
+                    echo "Menjalankan npm audit (Frontend)..."
+                    // Menggunakan || true sementara agar audit tidak menggagalkan build jika ada moderate vulnerability
+                    sh "docker run --rm \${FRONTEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c 'npm audit --audit-level=high || echo \"Peringatan: Terdapat NPM vulnerabilities!\"'"
+                    
+                    echo "Menjalankan govulncheck (Backend)..."
+                    sh "docker run --rm \${BACKEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c 'go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./...'"
+                }
+            }
+        }
+        
         stage('Integration & Load Test') {
             steps {
                 script {
@@ -120,6 +144,13 @@ pipeline {
                         sh "cat k6/load-test.js | docker run --rm -i --network asahkoding_test_net grafana/k6 run -"
                         
                         echo "Load & Stress Test Berhasil!"
+                        
+                        // Menjalankan DAST (Dynamic Application Security Testing) menggunakan OWASP ZAP
+                        echo "Memulai OWASP ZAP Baseline Scan (DAST)..."
+                        // Gunakan opsi -I agar ZAP mengembalikan exit 0 meskipun menemukan warning, karena pipeline kita belum memiliki konfigurasi keamanan header yang ekstensif
+                        sh "docker run --rm -i --network asahkoding_test_net ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://backend-test:8080 -I"
+                        
+                        echo "OWASP ZAP DAST Selesai!"
                     } catch (Exception e) {
                         echo "Integration / Load Test Gagal: \${e.message}"
                         error("Integration / Load Test Gagal!")

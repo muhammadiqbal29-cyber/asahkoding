@@ -78,9 +78,9 @@
  * [x] **[NEW] Pengujian Lanjutan (Advanced Testing)**
    * [x] Menjalankan *Load / Stress Testing* (K6 / JMeter) untuk menguji ketahanan aplikasi saat beban tinggi
    * [ ] Menjalankan *End-to-End (E2E) Testing* secara otomatis pada antarmuka pengguna / alur sistem utuh
- * [ ] Pemindaian keamanan kode dan kualitas kode (*Security & Code Scanning*)
-   * [ ] Memeriksa apakah ada pustaka *dependencies* yang memiliki celah keamanan (*vulnerability*) lewat `npm audit` / `govulncheck` atau integrasi SonarQube.
-   * [ ] **[SECURITY]** Menjalankan pengujian DAST (*Dynamic Application Security Testing*) menggunakan OWASP ZAP untuk mensimulasikan serangan *hacker* (XSS, CSRF, Brute Force) ke API yang sedang menyala.
+ * [x] Pemindaian keamanan kode dan kualitas kode (*Security & Code Scanning*)
+   * [x] Memeriksa apakah ada pustaka *dependencies* yang memiliki celah keamanan (*vulnerability*) lewat `npm audit` / `govulncheck` atau integrasi SonarQube.
+   * [x] **[SECURITY]** Menjalankan pengujian DAST (*Dynamic Application Security Testing*) menggunakan OWASP ZAP untuk mensimulasikan serangan *hacker* (XSS, CSRF, Brute Force) ke API yang sedang menyala.
 
 **5. Release (Rilis)**
  * [ ] Pemberian versi pada Docker Image (*Image Tagging*)
