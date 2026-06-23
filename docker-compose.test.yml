@@ -41,6 +41,17 @@ services:
     networks:
       - default
 
+  frontend-test:
+    image: ${FRONTEND_IMAGE:-iqbalmahad4039/leetcode-frontend}:${GIT_COMMIT_SHORT:-latest}
+    environment:
+      - BACKEND_URL=http://backend-test:8080
+    expose:
+      - "3000"
+    depends_on:
+      - backend-test
+    networks:
+      - default
+
 networks:
   default:
     name: asahkoding_test_net

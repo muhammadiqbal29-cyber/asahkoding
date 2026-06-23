@@ -13,7 +13,7 @@ export default function Home() {
 
   // Otomatis mendapatkan token JWT untuk pengujian tanpa membuat UI Login dulu
   useEffect(() => {
-    fetch('http://localhost:8080/api/auth/login', {
+    fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: "fauzan@leetcode.com", password: "rahasia123" })
@@ -37,7 +37,7 @@ export default function Home() {
     setIsError(false);
 
     try {
-      const response = await fetch('http://localhost:8080/api/submissions/', {
+      const response = await fetch('/api/submissions/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

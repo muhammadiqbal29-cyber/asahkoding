@@ -77,7 +77,7 @@
    * [x] Menguji apakah kontainer aplikasi Node.js/Golang benar-benar bisa membaca dan menulis data ke kontainer Redis *test*
  * [x] **[NEW] Pengujian Lanjutan (Advanced Testing)**
    * [x] Menjalankan *Load / Stress Testing* (K6 / JMeter) untuk menguji ketahanan aplikasi saat beban tinggi
-   * [ ] Menjalankan *End-to-End (E2E) Testing* secara otomatis pada antarmuka pengguna / alur sistem utuh
+   * [x] Menjalankan *End-to-End (E2E) Testing* secara otomatis pada antarmuka pengguna / alur sistem utuh
  * [x] Pemindaian keamanan kode dan kualitas kode (*Security & Code Scanning*)
    * [x] Memeriksa apakah ada pustaka *dependencies* yang memiliki celah keamanan (*vulnerability*) lewat `npm audit` / `govulncheck` atau integrasi SonarQube.
    * [x] **[SECURITY]** Menjalankan pengujian DAST (*Dynamic Application Security Testing*) menggunakan OWASP ZAP untuk mensimulasikan serangan *hacker* (XSS, CSRF, Brute Force) ke API yang sedang menyala.

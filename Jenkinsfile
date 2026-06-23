@@ -67,6 +67,14 @@ pipeline {
                             -t \${FRONTEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} \\
                             .
                         """
+                        
+                        echo "Building Cypress E2E Image..."
+                        sh """
+                        docker build \\
+                            -f Dockerfile.e2e \\
+                            -t \${FRONTEND_IMAGE}-e2e:\${GIT_COMMIT_SHORT} \\
+                            .
+                        """
                     }
                 }
             }
@@ -113,12 +121,12 @@ pipeline {
             }
         }
         
-        stage('Integration & Load Test') {
+        stage('Integration, Load & E2E Test') {
             steps {
                 script {
-                    echo "Menjalankan Integration Test menggunakan Docker Compose..."
+                    echo "Menjalankan Lingkungan Test menggunakan Docker Compose..."
                     try {
-                        // Mengunduh docker-compose binary secara lokal ke workspace (karena Jenkins container mungkin tidak memilikinya)
+                        // Mengunduh docker-compose binary secara lokal ke workspace
                         sh """
                         if [ ! -f ./docker-compose ]; then
                             curl -SL https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -o docker-compose
@@ -126,8 +134,8 @@ pipeline {
                         fi
                         """
                         
-                        // Menghidupkan lingkungan test (MySQL, Redis, Backend)
-                        sh "BACKEND_IMAGE=\${BACKEND_IMAGE} GIT_COMMIT_SHORT=\${GIT_COMMIT_SHORT} ./docker-compose -f docker-compose.test.yml up -d"
+                        // Menghidupkan lingkungan test (MySQL, Redis, Backend, Frontend)
+                        sh "FRONTEND_IMAGE=\${FRONTEND_IMAGE} BACKEND_IMAGE=\${BACKEND_IMAGE} GIT_COMMIT_SHORT=\${GIT_COMMIT_SHORT} ./docker-compose -f docker-compose.test.yml up -d"
                         
                         // Menunggu container database siap (Healthcheck)
                         echo "Menunggu database siap..."
@@ -147,13 +155,20 @@ pipeline {
                         
                         // Menjalankan DAST (Dynamic Application Security Testing) menggunakan OWASP ZAP
                         echo "Memulai OWASP ZAP Baseline Scan (DAST)..."
-                        // Gunakan opsi -I agar ZAP mengembalikan exit 0 meskipun menemukan warning, karena pipeline kita belum memiliki konfigurasi keamanan header yang ekstensif
+                        // Gunakan opsi -I agar ZAP mengembalikan exit 0 meskipun menemukan warning
                         sh "docker run --rm -i --network asahkoding_test_net ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://backend-test:8080 -I"
                         
                         echo "OWASP ZAP DAST Selesai!"
+
+                        // Menjalankan E2E Testing menggunakan Cypress
+                        echo "Memulai End-to-End (E2E) Testing menggunakan Cypress..."
+                        // Cypress membutuhkan flag --e2e. Image cypress yang dibuat sudah memiliki test cases.
+                        sh "docker run --rm --network asahkoding_test_net \${FRONTEND_IMAGE}-e2e:\${GIT_COMMIT_SHORT} cypress run --e2e"
+                        
+                        echo "Cypress E2E Test Berhasil!"
                     } catch (Exception e) {
-                        echo "Integration / Load Test Gagal: \${e.message}"
-                        error("Integration / Load Test Gagal!")
+                        echo "Integration / Load / E2E Test Gagal: \${e.message}"
+                        error("Integration / Load / E2E Test Gagal!")
                     } finally {
                         // Membersihkan container test agar tidak memakan resource Jenkins
                         sh "./docker-compose -f docker-compose.test.yml down -v"

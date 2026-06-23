@@ -1,0 +1,8 @@
+FROM cypress/included:13.6.0
+WORKDIR /e2e
+COPY package*.json ./
+# Kita tidak perlu npm install seluruh dependencies Next.js, cukup cypress saja jika perlu, 
+# tapi karena cypress/included sudah memilikinya, kita bisa mengabaikannya.
+# Kita cukup copy file testnya saja.
+COPY cypress.config.js ./
+COPY cypress ./cypress
