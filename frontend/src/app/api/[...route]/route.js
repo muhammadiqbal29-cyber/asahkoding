@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 async function handleProxy(request, { params }) {
   const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
   
