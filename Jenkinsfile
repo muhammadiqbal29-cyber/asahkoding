@@ -162,8 +162,8 @@ pipeline {
 
                         // Menjalankan E2E Testing menggunakan Cypress
                         echo "Memulai End-to-End (E2E) Testing menggunakan Cypress..."
-                        // Cypress membutuhkan flag --e2e. Image cypress yang dibuat sudah memiliki test cases.
-                        sh "docker run --rm --network asahkoding_test_net \${FRONTEND_IMAGE}-e2e:\${GIT_COMMIT_SHORT} cypress run --e2e"
+                        // Cypress membutuhkan flag --e2e. Kita oper CYPRESS_BASE_URL agar menembak container frontend-test
+                        sh "docker run --rm --network asahkoding_test_net -e CYPRESS_BASE_URL=http://frontend-test:3000 \${FRONTEND_IMAGE}-e2e:\${GIT_COMMIT_SHORT} cypress run --e2e"
                         
                         echo "Cypress E2E Test Berhasil!"
                     } catch (Exception e) {
