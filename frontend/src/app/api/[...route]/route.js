@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-async function handleProxy(request, { params }) {
+async function handleProxy(request, context) {
+  const params = await context.params;
   const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
   
   // params.route is an array of path segments, e.g. ['auth', 'login']
