@@ -3,6 +3,8 @@ FROM golang:alpine AS builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
+# Pre-install govulncheck agar image builder bersifat immutable dan cepat
+RUN go install golang.org/x/vuln/cmd/govulncheck@latest
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/api
 

@@ -80,43 +80,47 @@ pipeline {
             }
         }
         
-        stage('Unit Test & Coverage') {
-            steps {
-                script {
-                    echo "Menjalankan Golang Unit Test & Coverage..."
-                    // Menjalankan testing dari dalam image builder yang memiliki source code & tools Golang
-                    sh """
-                        docker run --rm \${BACKEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c '
-                            go test ./... -coverprofile=coverage.out
-                            COVERAGE=\$(go tool cover -func=coverage.out | grep total | awk "{print \\\$3}" | tr -d "%")
-                            echo "Current Coverage: \${COVERAGE}%"
-                            awk -v cov="\$COVERAGE" "BEGIN { if (cov < 20.0) { exit 1 } }" || { echo "Coverage is below 20%! Failing build."; exit 1; }
-                            echo "Coverage OK."
-                        '
-                    """
+        stage('Parallel Tests & Scans') {
+            parallel {
+                stage('Unit Test & Coverage') {
+                    steps {
+                        script {
+                            echo "Menjalankan Golang Unit Test & Coverage..."
+                            // Menjalankan testing dari dalam image builder yang memiliki source code & tools Golang
+                            sh """
+                                docker run --rm \${BACKEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c '
+                                    go test ./... -coverprofile=coverage.out
+                                    COVERAGE=\$(go tool cover -func=coverage.out | grep total | awk "{print \\\$3}" | tr -d "%")
+                                    echo "Current Coverage: \${COVERAGE}%"
+                                    awk -v cov="\$COVERAGE" "BEGIN { if (cov < 20.0) { exit 1 } }" || { echo "Coverage is below 20%! Failing build."; exit 1; }
+                                    echo "Coverage OK."
+                                '
+                            """
+                        }
+                    }
                 }
-            }
-        }
-        
-        stage('Security Scan (Trivy)') {
-            steps {
-                script {
-                    echo "Memindai Backend Image untuk Vulnerabilities..."
-                    // Menjalankan Trivy dari Docker untuk mengecek image (hanya menampilkan HIGH dan CRITICAL)
-                    sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL --no-progress \${BACKEND_IMAGE}:\${GIT_COMMIT_SHORT}"
+                
+                stage('Security Scan (Trivy)') {
+                    steps {
+                        script {
+                            echo "Memindai Backend Image untuk Vulnerabilities..."
+                            // Menjalankan Trivy dari Docker untuk mengecek image (hanya menampilkan HIGH dan CRITICAL)
+                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL --no-progress \${BACKEND_IMAGE}:\${GIT_COMMIT_SHORT}"
+                        }
+                    }
                 }
-            }
-        }
-        
-        stage('Dependency Security Audit') {
-            steps {
-                script {
-                    echo "Menjalankan npm audit (Frontend)..."
-                    // Menggunakan || true sementara agar audit tidak menggagalkan build jika ada moderate vulnerability
-                    sh "docker run --rm \${FRONTEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c 'npm audit --audit-level=high || echo \"Peringatan: Terdapat NPM vulnerabilities!\"'"
-                    
-                    echo "Menjalankan govulncheck (Backend)..."
-                    sh "docker run --rm \${BACKEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c 'go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./...'"
+                
+                stage('Dependency Security Audit') {
+                    steps {
+                        script {
+                            echo "Menjalankan npm audit (Frontend)..."
+                            // Menggunakan || true sementara agar audit tidak menggagalkan build jika ada moderate vulnerability
+                            sh "docker run --rm \${FRONTEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c 'npm audit --audit-level=high || echo \"Peringatan: Terdapat NPM vulnerabilities!\"'"
+                            
+                            echo "Menjalankan govulncheck (Backend)..."
+                            sh "docker run --rm \${BACKEND_IMAGE}-builder:\${GIT_COMMIT_SHORT} sh -c 'govulncheck ./...'"
+                        }
+                    }
                 }
             }
         }
@@ -134,12 +138,10 @@ pipeline {
                         fi
                         """
                         
-                        // Menghidupkan lingkungan test (MySQL, Redis, Backend, Frontend)
-                        sh "FRONTEND_IMAGE=\${FRONTEND_IMAGE} BACKEND_IMAGE=\${BACKEND_IMAGE} GIT_COMMIT_SHORT=\${GIT_COMMIT_SHORT} ./docker-compose -f docker-compose.test.yml up -d"
+                        // Menghidupkan lingkungan test dan menunggu seluruh container siap (Healthcheck) via argumen --wait
+                        sh "FRONTEND_IMAGE=\${FRONTEND_IMAGE} BACKEND_IMAGE=\${BACKEND_IMAGE} GIT_COMMIT_SHORT=\${GIT_COMMIT_SHORT} ./docker-compose -f docker-compose.test.yml up --wait -d"
                         
-                        // Menunggu container database siap (Healthcheck)
-                        echo "Menunggu database siap..."
-                        sleep 15
+                        echo "Semua kontainer siap (Healthcheck Passed)!"
                         
                         // Menembak endpoint integration test dari dalam docker network
                         echo "Menguji Endpoint Redis Integration..."

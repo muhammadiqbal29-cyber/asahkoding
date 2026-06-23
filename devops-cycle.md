@@ -133,3 +133,10 @@
    * [ ] Menerapkan *Application Performance Monitoring* (APM) dengan Dasbor (Prometheus & Grafana, New Relic, atau Datadog)
    * [ ] Memasang *Distributed Tracing* (seperti Jaeger/Zipkin) untuk melacak *bottleneck* performa di tiap layanan
    * [ ] Mengaktifkan *Uptime Monitoring* dari pihak eksternal (misal: UptimeRobot) untuk memverifikasi aplikasi online dari internet
+
+---
+
+**Catatan Standar Industri (Telah Diimplementasikan)**
+- **Parallel Execution**: Pipeline dirancang dengan eksekusi multi-cabang serentak (Trivy, Unit Test, Audit) untuk menghindari *bottleneck* antrean *deployment*.
+- **Immutable Builder Image**: Perangkat (*tools*) seperti `govulncheck` telah ditanam permanen ke dalam *base image* (Dockerfile builder stage) untuk menjamin stabilitas saat server pihak ketiga mengalami gangguan (*down*).
+- **Dynamic Service Readiness**: Seluruh layanan divalidasi kesiapannya menggunakan Docker Healthcheck dengan _trigger_ `--wait`, menghapus *anti-pattern* `sleep` statis demi waktu eksekusi seefisien mungkin.
