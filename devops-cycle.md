@@ -73,8 +73,8 @@
  * [x] Eksekusi *Unit Test* secara otomatis via pipeline Jenkins
    * [x] Jika ada 1 saja *test* yang gagal (*fail*), Jenkins harus otomatis menghentikan proses (*abort pipeline*)
    * [x] **[NEW]** Memeriksa *Code Coverage Threshold* (Gagal jika cakupan tes di bawah target, misal wajib 80%)
- * [ ] Menjalankan pengujian integrasi (*Integration Test*)
-   * [ ] Menguji apakah kontainer aplikasi Node.js benar-benar bisa membaca dan menulis data ke kontainer Redis *test*
+ * [x] Menjalankan pengujian integrasi (*Integration Test*)
+   * [x] Menguji apakah kontainer aplikasi Node.js/Golang benar-benar bisa membaca dan menulis data ke kontainer Redis *test*
  * [ ] **[NEW] Pengujian Lanjutan (Advanced Testing)**
    * [ ] Menjalankan *Load / Stress Testing* (K6 / JMeter) untuk menguji ketahanan aplikasi saat beban tinggi
    * [ ] Menjalankan *End-to-End (E2E) Testing* secara otomatis pada antarmuka pengguna / alur sistem utuh

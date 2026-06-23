@@ -89,6 +89,34 @@ pipeline {
             }
         }
         
+        stage('Integration Test') {
+            steps {
+                script {
+                    echo "Menjalankan Integration Test menggunakan Docker Compose..."
+                    try {
+                        // Menghidupkan lingkungan test (MySQL, Redis, Backend)
+                        sh "docker-compose -f docker-compose.test.yml up -d"
+                        
+                        // Menunggu container database siap (Healthcheck)
+                        echo "Menunggu database siap..."
+                        sleep 15
+                        
+                        // Menembak endpoint integration test
+                        echo "Menguji Endpoint Redis Integration..."
+                        sh "curl -f --retry 5 --retry-connrefused --retry-delay 3 http://localhost:8081/health/redis"
+                        
+                        echo "Integration Test Berhasil!"
+                    } catch (Exception e) {
+                        echo "Integration Test Gagal: \${e.message}"
+                        error("Integration Test Gagal!")
+                    } finally {
+                        // Membersihkan container test agar tidak memakan resource Jenkins
+                        sh "docker-compose -f docker-compose.test.yml down -v"
+                    }
+                }
+            }
+        }
+        
         // Catatan: Tahapan selanjutnya (Push ke Registry, Deploy) 
         // akan disesuaikan saat Anda melanjutkan checklist berikutnya.
     }

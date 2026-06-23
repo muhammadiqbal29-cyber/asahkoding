@@ -65,6 +65,31 @@ func main() {
 		_, _ = w.Write([]byte("OK - API is running"))
 	})
 
+	// Endpoint khusus Integration Test
+	r.Get("/health/redis", func(w http.ResponseWriter, r *http.Request) {
+		if config.RedisClient == nil {
+			http.Error(w, "Redis is not connected", http.StatusInternalServerError)
+			return
+		}
+		
+		// Test Write
+		err := config.RedisClient.Set(config.Ctx, "integration_test_key", "integration_test_value", 5*time.Second).Err()
+		if err != nil {
+			http.Error(w, "Failed to write to Redis: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		
+		// Test Read
+		val, err := config.RedisClient.Get(config.Ctx, "integration_test_key").Result()
+		if err != nil || val != "integration_test_value" {
+			http.Error(w, "Failed to read from Redis", http.StatusInternalServerError)
+			return
+		}
+		
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("OK - Redis Read/Write Successful"))
+	})
+
 	// Mendaftarkan Grup Rute
 	r.Mount("/api/auth", user.Routes())
 	r.Mount("/api/problems", problem.Routes())
