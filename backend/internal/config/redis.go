@@ -27,13 +27,21 @@ func InitRedis() {
 
 	client := redis.NewClient(opts)
 
-	// Ping to test connection with timeout (failover mechanism)
-	ctx, cancel := context.WithTimeout(Ctx, 3*time.Second)
-	defer cancel()
+	// Menambahkan mekanisme Retry agar tangguh terhadap keterlambatan Redis (Docker-in-Docker issue)
+	for i := 1; i <= 10; i++ {
+		ctx, cancel := context.WithTimeout(Ctx, 3*time.Second)
+		_, err = client.Ping(ctx).Result()
+		cancel()
+		
+		if err == nil {
+			break
+		}
+		log.Printf("Menunggu Redis siap (percobaan %d/10): %v\n", i, err)
+		time.Sleep(3 * time.Second)
+	}
 
-	_, err = client.Ping(ctx).Result()
 	if err != nil {
-		log.Printf("FAILOVER: Failed to connect to Redis: %v\n", err)
+		log.Printf("FAILOVER: Gagal terhubung ke Redis setelah beberapa kali percobaan: %v\n", err)
 		log.Println("WARNING: API will continue running, but queue features will be disabled.")
 		return
 	}

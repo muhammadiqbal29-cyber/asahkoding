@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -17,10 +18,20 @@ func InitMySQL() {
 		return
 	}
 
-	// Failover mechanism: try to connect, but don't panic if it fails
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	// Menambahkan mekanisme Retry agar tangguh terhadap keterlambatan MySQL (Docker-in-Docker issue)
+	var db *gorm.DB
+	var err error
+	for i := 1; i <= 10; i++ {
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err == nil {
+			break
+		}
+		log.Printf("Menunggu MySQL siap (percobaan %d/10): %v\n", i, err)
+		time.Sleep(3 * time.Second)
+	}
+
 	if err != nil {
-		log.Printf("FAILOVER: Failed to connect to MySQL: %v\n", err)
+		log.Printf("FAILOVER: Gagal terhubung ke MySQL setelah beberapa kali percobaan: %v\n", err)
 		log.Println("WARNING: API will continue running, but database features will be disabled.")
 		return
 	}
