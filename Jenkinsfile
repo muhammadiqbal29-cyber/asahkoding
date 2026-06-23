@@ -149,21 +149,21 @@ pipeline {
 
                         // Menjalankan Load & Stress Test menggunakan K6
                         echo "Memulai Load & Stress Testing dengan K6 (50 VUs)..."
-                        sh "cat k6/load-test.js | docker run --rm -i --network asahkoding_test_net grafana/k6 run -"
+                        sh "cat k6/load-test.js | docker run --memory=200m --rm -i --network asahkoding_test_net grafana/k6 run -"
                         
                         echo "Load & Stress Test Berhasil!"
                         
                         // Menjalankan DAST (Dynamic Application Security Testing) menggunakan OWASP ZAP
                         echo "Memulai OWASP ZAP Baseline Scan (DAST)..."
                         // Gunakan opsi -I agar ZAP mengembalikan exit 0 meskipun menemukan warning
-                        sh "docker run --rm -i --network asahkoding_test_net ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://backend-test:8080 -I"
+                        sh "docker run --memory=1g --rm -i --network asahkoding_test_net ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://backend-test:8080 -I"
                         
                         echo "OWASP ZAP DAST Selesai!"
 
                         // Menjalankan E2E Testing menggunakan Cypress
                         echo "Memulai End-to-End (E2E) Testing menggunakan Cypress..."
                         // Cypress membutuhkan flag --e2e. Kita oper CYPRESS_BASE_URL agar menembak container frontend-test
-                        sh "docker run --rm --network asahkoding_test_net -e CYPRESS_BASE_URL=http://frontend-test:3000 \${FRONTEND_IMAGE}-e2e:\${GIT_COMMIT_SHORT} cypress run --e2e"
+                        sh "docker run --memory=1g --rm --network asahkoding_test_net -e CYPRESS_BASE_URL=http://frontend-test:3000 \${FRONTEND_IMAGE}-e2e:\${GIT_COMMIT_SHORT} cypress run --e2e"
                         
                         echo "Cypress E2E Test Berhasil!"
                     } catch (Exception e) {
