@@ -42,9 +42,9 @@ Pipeline Jenkins kita (diatur dalam `Jenkinsfile`) beroperasi dalam dua mode yan
 
 ## 🛠️ Manajemen Perubahan Harian (Workflow)
 
-1. Tulis kode fitur Anda (Frontend/Backend).
-2. Tulis *Unit Test* kecil untuk fungsi tersebut.
-3. Lakukan komit standar, misalnya: `git commit -m "feat: tambah halaman soal"`.
-4. *Push* ke repositori: `git push origin main`.
-5. Anda hanya perlu menunggu ~1 menit. Jika *pipeline* berwarna hijau, fitur Anda sudah terbungkus rapi di *Docker Hub*.
-6. Jika Anda sudah mengumpulkan beberapa fitur dan bersiap melakukan peluncuran (*Launch*), buka Jenkins, klik *Build with Parameters*, centang `RUN_HEAVY_TESTS`, dan klik *Build*. Sambil menunggu 15 menit, Anda bisa pergi menyeduh kopi! ☕
+- [ ] Tulis kode fitur Anda (Frontend/Backend).
+- [ ] Tulis *Unit Test* kecil untuk fungsi tersebut.
+- [ ] Lakukan komit standar, misalnya: `git commit -m "feat: tambah halaman soal"`.
+- [ ] *Push* ke repositori: `git push origin main`.
+- [ ] Tunggu ~1-2 menit hingga *pipeline* hijau (fitur Anda otomatis terbungkus di *Docker Hub*).
+- [ ] Kumpulkan beberapa fitur. Jika sudah siap rilis besar (*Launch*), buka Jenkins, klik **Build with Parameters**, centang `RUN_HEAVY_TESTS`, dan klik **Build**. Sambil menunggu 15 menit, Anda bisa pergi menyeduh kopi! ☕
