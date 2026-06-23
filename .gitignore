@@ -29,3 +29,10 @@ backend/leetcode-backend
 Thumbs.db
 ngrok
 backend/main
+
+# Documentation & Logs
+*-catatan.md
+logcatatangagal.md
+devops-best-practices.md
+devops-cycle.md
+failed.md

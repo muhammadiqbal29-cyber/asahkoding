@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // Variabel untuk Docker Hub / Registry Anda
-        DOCKER_REGISTRY = 'iqbalmahad4039'
+        DOCKER_REGISTRY = 'iqbalmahad'
         BACKEND_IMAGE = "${DOCKER_REGISTRY}/leetcode-backend"
         FRONTEND_IMAGE = "${DOCKER_REGISTRY}/leetcode-frontend"
         

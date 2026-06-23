@@ -4,7 +4,7 @@
   "description": "AsahKoding Root Project for Versioning",
   "private": true,
   "scripts": {
-    "release": "commit-and-tag-version"
+    "release": "commit-and-tag-version --first-release"
   },
   "devDependencies": {
     "commit-and-tag-version": "^12.4.1"
