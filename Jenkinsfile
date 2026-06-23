@@ -89,7 +89,7 @@ pipeline {
             }
         }
         
-        stage('Integration Test') {
+        stage('Integration & Load Test') {
             steps {
                 script {
                     echo "Menjalankan Integration Test menggunakan Docker Compose..."
@@ -114,9 +114,15 @@ pipeline {
                         sh "docker run --rm --network asahkoding_test_net curlimages/curl -f --retry 5 --retry-connrefused --retry-delay 3 http://backend-test:8080/health/redis"
                         
                         echo "Integration Test Berhasil!"
+
+                        // Menjalankan Load & Stress Test menggunakan K6
+                        echo "Memulai Load & Stress Testing dengan K6 (50 VUs)..."
+                        sh "cat k6/load-test.js | docker run --rm -i --network asahkoding_test_net grafana/k6 run -"
+                        
+                        echo "Load & Stress Test Berhasil!"
                     } catch (Exception e) {
-                        echo "Integration Test Gagal: \${e.message}"
-                        error("Integration Test Gagal!")
+                        echo "Integration / Load Test Gagal: \${e.message}"
+                        error("Integration / Load Test Gagal!")
                     } finally {
                         // Membersihkan container test agar tidak memakan resource Jenkins
                         sh "./docker-compose -f docker-compose.test.yml down -v"
