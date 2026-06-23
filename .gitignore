@@ -22,7 +22,10 @@ backend/leetcode-backend
 *.dylib
 *.test
 *.out
+*_test.go
 
 # OS generated files
 .DS_Store
 Thumbs.db
+ngrok
+backend/main

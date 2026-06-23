@@ -20,39 +20,54 @@
    * [x] Menentukan bahasa/kerangka kerja untuk *Backend* / API Server (**Golang** dengan struktur folder ramah AI Context)
    * [x] Menentukan bahasa/kerangka kerja untuk *Frontend* (Antarmuka) (**Next.js**)
    * [x] Menentukan *Database* dan *Message Broker* (**MySQL** & Redis)
+ * [x] **Perancangan Database & Skema**
+   * [x] Membuat Entity Relationship Diagram (ERD) untuk tabel-tabel utama
  * [x] Inisialisasi Repositori Kode (Git Setup)
-   * [x] Membuat file `.gitignore` (memastikan `node_modules` dan file `.env` tidak ikut terunggah)
- * [ ] Konfigurasi Otoritas Keamanan & Hak Akses
-   * [ ] Mengaktifkan *Branch Protection* di GitHub/GitLab (cabang `main`/`production` tidak bisa langsung di-*push* tanpa persetujuan)
-   * [ ] Mengunci akses token repositori hanya untuk tim yang berkepentingan
- * [ ] Penulisan Kode Program Node.js (Fitur & Integrasi Redis)
-   * [ ] Menggunakan *environment variables* (`process.env`) untuk koneksi database, bukan *hardcode*
-   * [ ] Membuat fungsi koneksi *failover* (jika Redis mati, aplikasi tidak langsung *crash*)
- * [ ] Membuat file konfigurasi PM2 (`ecosystem.config.js`)
-   * [ ] Mengatur `instances: "max"` atau `max_memory_restart` agar PM2 otomatis melakukan *restart* jika memori Node.js bocor (*memory leak*)
- * [ ] **[NEW] Standardisasi & Kualitas Kode**
-   * [ ] Menerapkan *Linting* & *Formatting* otomatis (ESLint & Prettier)
-   * [ ] Menambahkan Git Hooks (Husky) untuk memeriksa *linter* sebelum *commit* (*Pre-commit hook*)
-   * [ ] Menggunakan *Conventional Commits* (misal: `feat: auth`, `fix: login bug`) agar *history* rapi
- * [ ] Penulisan Pengujian Unit (*Unit Test*)
-   * [ ] Menulis tes untuk fungsi logika/matematika utama aplikasi
-   * [ ] Membuat *mocking* untuk *query* database agar tes berjalan cepat tanpa menyentuh DB asli
- * [ ] Tinjauan Kode oleh Sesama Developer (*Peer Code Review*)
-   * [ ] Minimal ada 1 atau 2 developer lain yang menyetujui (*approve*) *Pull Request* sebelum digabung
- * [ ] Penggabungan Kode ke Cabang Utama (*Merge/Pull Request*)
+   * [x] Membuat file `.gitignore` (memastikan file rahasia tidak ikut terunggah)
+ * [x] Konfigurasi Otoritas Keamanan & Hak Akses *(Dilewati - Proyek Solo)*
+   * [x] Mengaktifkan *Branch Protection* di GitHub/GitLab (cabang `main`/`production` tidak bisa langsung di-*push* tanpa persetujuan)
+   * [x] Mengunci akses token repositori hanya untuk tim yang berkepentingan
+ * [x] **Persiapan Infrastruktur Development (Docker)**
+   * [x] Membuat `docker-compose.yml` khusus untuk menjalankan MySQL & Redis lokal
+ * [x] **Fase 1: Penulisan Kode Program Backend (Golang)**
+   * [x] Membangun struktur folder Golang berbasis Domain (AI-Friendly)
+   * [x] Menghubungkan Golang ke kontainer MySQL & Redis menggunakan `.env`
+   * [x] Membangun *Execution Engine*: Golang mengendalikan sistem Docker untuk menjalankan kode peserta ujian
+   * [x] Membuat fungsi koneksi *failover* (jika MySQL/Redis mati, API merespons dengan baik)
+   * [x] **Keamanan Lapis Aplikasi (Autentikasi & Otorisasi)**
+     * [x] Membuat sistem Login/Register (JWT Token)
+     * [x] Membuat Middleware Otorisasi (Membedakan hak akses Admin vs Peserta Ujian)
+   * [x] Membangun Rute API CRUD (Problem, Submission) & Skema Database
+ * [x] **Fase 2: Penulisan Kode Program Frontend (Next.js)**
+   * [x] Merancang antarmuka UI/UX (Daftar Soal, Editor Kode, Hasil Ujian)
+   * [x] Menghubungkan Frontend dengan API Backend Golang
+ * [x] Konfigurasi Deployment Lokal (Pengujian)
+   * [x] Menjalankan Frontend dan Backend secara *Native* (tanpa dibungkus Docker) agar proses ngoding cepat (*hot-reload*)
+ * [x] **[NEW] Standardisasi, Kualitas, & Keamanan Kode (DevSecOps)**
+   * [x] Menerapkan *Linting* & *Formatting* otomatis (ESLint & Prettier)
+   * [x] **[SECURITY]** Menambahkan pemindaian SAST (*Static Application Security Testing*) seperti `gosec` untuk mendeteksi celah keamanan (SQL Injection, Hardcoded Passwords) langsung di *source code*.
+   * [x] Menambahkan Git Hooks (Husky) untuk mencegah *commit* jika kode tidak lulus *Linter* dan SAST.
+   * [x] Menggunakan *Conventional Commits* (misal: `feat: auth`, `fix: login bug`) agar *history* rapi *(Dilewati - Proyek Solo)*
+ * [x] Penulisan Pengujian Unit (*Unit Test*)
+   * [x] Menulis tes untuk fungsi logika/matematika utama aplikasi
+   * [x] Membuat *mocking* untuk *query* database agar tes berjalan cepat tanpa menyentuh DB asli
+ * [x] Tinjauan Kode oleh Sesama Developer (*Peer Code Review*) *(Dilewati - Proyek Solo)*
+   * [x] Minimal ada 1 atau 2 developer lain yang menyetujui (*approve*) *Pull Request* sebelum digabung
+ * [x] Penggabungan Kode ke Cabang Utama (*Merge/Pull Request*) *(Dilewati - Proyek Solo)*
 
 **3. Build (Pembuatan)**
- * [ ] Otomatisasi pemicu pembuatan *build* menggunakan Jenkins (CI)
-   * [ ] Mengonfigurasi *Webhook* dari Git ke Jenkins (setiap ada *merge*, Jenkins otomatis jalan)
- * [ ] Membuat Dockerfile
-   * [ ] Menggunakan *base image* yang ringan (misal: `node:alpine` atau `node:slim`) untuk menghemat ruang penyimpanan server
-   * [ ] Memasukkan perintah instalasi PM2 secara global (`RUN npm install pm2 -g`)
-   * [ ] **[NEW]** Menerapkan *Multi-stage Build* (Memisahkan proses instalasi `devDependencies` dan *runtime* agar *image* lebih kecil & aman)
- * [ ] Menyusun *container image* menggunakan Docker
-   * [ ] Menjalankan perintah `docker build` lewat Jenkins
-   * [ ] **[NEW]** Memanfaatkan *Docker Cache Layer* untuk mempercepat proses *build* di pipeline
+ * [x] Otomatisasi pemicu pembuatan *build* menggunakan Jenkins (CI)
+   * [x] Mengonfigurasi *Webhook* dari Git ke Jenkins (setiap ada *merge*, Jenkins otomatis jalan)
+ * [x] Membuat Dockerfile
+   * [x] Menggunakan *base image* yang ringan (misal: `node:alpine` atau `node:slim`) untuk menghemat ruang penyimpanan server
+   * [x] Memasukkan perintah instalasi PM2 secara global (`RUN npm install pm2 -g`) *(Diganti dengan eksekusi langsung via kontainer)*
+   * [x] **[NEW]** Menerapkan *Multi-stage Build* (Memisahkan proses instalasi `devDependencies` dan *runtime* agar *image* lebih kecil & aman)
+ * [x] Menyusun *container image* menggunakan Docker
+   * [x] Menjalankan perintah `docker build` lewat Jenkins
+   * [x] **[NEW]** Memanfaatkan *Docker Cache Layer* untuk mempercepat proses *build* di pipeline
  * [ ] Melakukan kompilasi dan pembungkusan kode menjadi *Artifact*
    * [ ] Memastikan tidak ada *error* sintaksis saat proses *build* berjalan
+   * [ ] **[SECURITY]** Melakukan *Container Security Scanning* (menggunakan Trivy/Clair) pada Docker Image yang baru dibuat untuk mendeteksi *vulnerability* level OS sebelum di-*deploy*.
 
 **4. Test (Pengujian)**
  * [ ] Eksekusi *Unit Test* secara otomatis via pipeline Jenkins
@@ -64,7 +79,8 @@
    * [ ] Menjalankan *Load / Stress Testing* (K6 / JMeter) untuk menguji ketahanan aplikasi saat beban tinggi
    * [ ] Menjalankan *End-to-End (E2E) Testing* secara otomatis pada antarmuka pengguna / alur sistem utuh
  * [ ] Pemindaian keamanan kode dan kualitas kode (*Security & Code Scanning*)
-   * [ ] Memeriksa apakah ada pustaka npm (*dependencies*) yang memiliki celah keamanan (*vulnerability*) lewat perintah seperti `npm audit` atau integrasi SonarQube
+   * [ ] Memeriksa apakah ada pustaka *dependencies* yang memiliki celah keamanan (*vulnerability*) lewat `npm audit` / `govulncheck` atau integrasi SonarQube.
+   * [ ] **[SECURITY]** Menjalankan pengujian DAST (*Dynamic Application Security Testing*) menggunakan OWASP ZAP untuk mensimulasikan serangan *hacker* (XSS, CSRF, Brute Force) ke API yang sedang menyala.
 
 **5. Release (Rilis)**
  * [ ] Pemberian versi pada Docker Image (*Image Tagging*)
@@ -81,6 +97,9 @@
    * [ ] Menerapkan *Infrastructure as Code* (IaC) seperti Terraform / Ansible untuk *provisioning* server
    * [ ] Menyiapkan otomatisasi *Database Migrations* dalam alur penyebaran
    * [ ] Memilih Strategi *Zero-Downtime Deployment* (*Blue-Green Deployment*, *Rolling Updates*, atau *Canary Release*)
+ * [ ] **[SECURITY] Infrastruktur Keamanan Jaringan & Rahasia**
+   * [ ] Memasang WAF (*Web Application Firewall*) & *Rate Limiting* (contoh: Cloudflare/NGINX) untuk menangkis serangan DDoS dan *Brute Force* API *Login*.
+   * [ ] Menggunakan *Secrets Management* (seperti HashiCorp Vault) untuk menyimpan *password* MySQL/Redis di produksi, **bukan** menggunakan file `.env` biasa.
  * [ ] Otomatisasi penyebaran (*Deployment*) menggunakan pipeline CD (Jenkins)
    * [ ] Mengamankan kunci SSH server produksi di dalam kredensial rahasia Jenkins (*Jenkins Credentials Store*)
  * [ ] Menyebarkan dan mengonfigurasi server/container Redis di lingkungan produksi
