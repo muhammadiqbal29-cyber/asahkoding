@@ -92,18 +92,18 @@ pipeline {
         stage('Integration Test') {
             steps {
                 script {
-                    echo "Menjalankan Integration Test menggunakan Docker Compose via Docker..."
+                    echo "Menjalankan Integration Test menggunakan Docker Compose..."
                     try {
-                        // Menghidupkan lingkungan test (MySQL, Redis, Backend)
+                        // Mengunduh docker-compose binary secara lokal ke workspace (karena Jenkins container mungkin tidak memilikinya)
                         sh """
-                        docker run --rm \\
-                            -v /var/run/docker.sock:/var/run/docker.sock \\
-                            -v "\$PWD:\$PWD" \\
-                            -w "\$PWD" \\
-                            -e BACKEND_IMAGE=\${BACKEND_IMAGE} \\
-                            -e GIT_COMMIT_SHORT=\${GIT_COMMIT_SHORT} \\
-                            docker/compose:1.29.2 -f docker-compose.test.yml up -d
+                        if [ ! -f ./docker-compose ]; then
+                            curl -SL https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -o docker-compose
+                            chmod +x docker-compose
+                        fi
                         """
+                        
+                        // Menghidupkan lingkungan test (MySQL, Redis, Backend)
+                        sh "BACKEND_IMAGE=\${BACKEND_IMAGE} GIT_COMMIT_SHORT=\${GIT_COMMIT_SHORT} ./docker-compose -f docker-compose.test.yml up -d"
                         
                         // Menunggu container database siap (Healthcheck)
                         echo "Menunggu database siap..."
@@ -119,13 +119,7 @@ pipeline {
                         error("Integration Test Gagal!")
                     } finally {
                         // Membersihkan container test agar tidak memakan resource Jenkins
-                        sh """
-                        docker run --rm \\
-                            -v /var/run/docker.sock:/var/run/docker.sock \\
-                            -v "\$PWD:\$PWD" \\
-                            -w "\$PWD" \\
-                            docker/compose:1.29.2 -f docker-compose.test.yml down -v
-                        """
+                        sh "./docker-compose -f docker-compose.test.yml down -v"
                     }
                 }
             }
