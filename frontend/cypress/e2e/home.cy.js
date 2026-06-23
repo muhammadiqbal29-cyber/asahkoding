@@ -1,7 +1,11 @@
 describe('AsahKoding E2E Tests', () => {
   it('should load the homepage and display the editor', () => {
-    // 1. Kunjungi halaman utama
+    // 1. Intercept auto-login dan kunjungi halaman utama
+    cy.intercept('POST', '/api/auth/login').as('autoLogin');
     cy.visit('/');
+
+    // Tunggu sampai auto-login selesai
+    cy.wait('@autoLogin', { timeout: 10000 });
 
     // 2. Pastikan judul aplikasi muncul
     cy.contains('Penjelajah Kata').should('be.visible');

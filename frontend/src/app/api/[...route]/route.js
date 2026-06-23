@@ -45,8 +45,8 @@ async function handleProxy(request, { params }) {
   }
 }
 
-export const GET = handleProxy;
-export const POST = handleProxy;
-export const PUT = handleProxy;
-export const DELETE = handleProxy;
-export const PATCH = handleProxy;
+export async function GET(request, context) { return handleProxy(request, context); }
+export async function POST(request, context) { return handleProxy(request, context); }
+export async function PUT(request, context) { return handleProxy(request, context); }
+export async function DELETE(request, context) { return handleProxy(request, context); }
+export async function PATCH(request, context) { return handleProxy(request, context); }
